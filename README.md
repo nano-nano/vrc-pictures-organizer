@@ -46,7 +46,7 @@ VRChat 2021.4.1(Build 1149)以降で撮影したVRカメラやスクリーンシ
 
 ## 使い方
 
-（準備中）
+[Wiki](https://github.com/nano-nano/vrc_pictures_organizer/wiki)に記載しています。
 
 ## ライセンス
 

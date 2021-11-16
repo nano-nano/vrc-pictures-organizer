@@ -21,9 +21,11 @@ const App = () => {
 
   const toast = useToast();
   const [ folderPath, setFolderPath ] = useState('');
+  const [ isRunOrganize, setIsRunOrganize ] = useState(false);
 
   useEffect(() => {
     ipcApi.registerOnFinishFileOrganizeCallback((successCount, failCount) => {
+      setIsRunOrganize(false);
       toast({
         title: '処理終了',
         description: (failCount > 0 ? `処理に失敗したファイルが${failCount}件あります` : `${successCount}件処理しました`),
@@ -43,7 +45,10 @@ const App = () => {
       isClosable: true,
     });
   });
-  const onClickExecButton = () => ipcApi.execFileOrganize(folderPath);
+  const onClickExecButton = () => {
+    setIsRunOrganize(true);
+    ipcApi.execFileOrganize(folderPath);
+  };
 
   const getSettingsObject = () => {
     return {
@@ -69,12 +74,14 @@ const App = () => {
                   bg='white'
                   pr='4.5rem'
                   value={folderPath}
+                  disabled={isRunOrganize}
                   onChange={(event) => setFolderPath(event.target.value)}
                 />
                 <InputRightElement width='4.5rem'>
                   <Button
                     h='1.75rem'
                     size='sm'
+                    disabled={isRunOrganize}
                     onClick={onClickSavePathButton}
                   >
                     保存
@@ -87,6 +94,7 @@ const App = () => {
             colorScheme='teal'
             variant='solid'
             isFullWidth
+            isLoading={isRunOrganize}
             onClick={onClickExecButton}
           >
             振り分け実行

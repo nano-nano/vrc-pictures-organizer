@@ -49,6 +49,10 @@ VRChat 2021.4.1(Build 1149)以降で撮影したVRカメラやスクリーンシ
 Windowsのみ対応しています。（そもそもVRChatはWindowsのみ対応）  
 開発自体はWindows10で行っていますが、それ以外のWindowsでも動作は可能と思われます。
 
+## ダウンロードリンク
+
+[こちら](https://github.com/nano-nano/vrc_pictures_organizer/releases)からどうぞ
+
 ## 使い方
 
 [Wiki](https://github.com/nano-nano/vrc_pictures_organizer/wiki)に記載しています。

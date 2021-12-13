@@ -2,6 +2,8 @@
 
 VRChatのスクリーンショットを撮影年月日別のフォルダに仕分けするアプリ
 
+![image](https://user-images.githubusercontent.com/29051777/145747865-8be61d1d-17fc-42c8-bc66-6d3b7bc4517c.png)
+
 ## これはなに？
 
 VRChat Picture Organizerは、

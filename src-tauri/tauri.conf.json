@@ -27,7 +27,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "jp.nano2.vrc-pictures-organizer",
       "targets": "all"
     },
     "security": {
@@ -39,11 +39,16 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": true,
-        "title": "vrc-pictures-organizer",
-        "width": 800,
-        "height": 600
+        "resizable": false,
+        "title": "VRC Pictures Organizer",
+        "width": 400,
+        "height": 300,
+        "visible": false
       }
-    ]
+    ],
+    "systemTray": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true
+    }
   }
 }

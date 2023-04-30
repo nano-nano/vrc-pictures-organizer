@@ -2,7 +2,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use chrono::{Local, NaiveTime, TimeZone};
+use fs_extra::file::write_all;
+use serde_json::{json, Value};
 use tauri::api::dir::{self, DiskEntry};
+use tauri::api::file::read_string;
 use tauri::api::path;
 use tauri::SystemTray;
 use tauri::{CustomMenuItem, SystemTrayEvent, SystemTrayMenu};
@@ -22,30 +25,98 @@ use tauri::Manager;
 /// * `app` - AppHandle
 fn show_settings_window(app: &tauri::AppHandle) {
     let _ = app.get_window("main").map(|win| win.show());
+    // 設定画面を表示中は監視を止める
+    stop_watching(app.state::<WatchingState>())
 }
 
 /// アプリ設定構造体
-struct Settings {
+#[derive(serde::Serialize)]
+struct Setting {
     /// フォルダ監視間隔（秒）
     interval: u16,
     /// 日付が変わったと判断する時刻（HH:MM）
     date_line: String,
 }
 /// アプリ設定state
-struct SettingState(Settings);
+struct SettingState(Mutex<Setting>);
 
 /// 設定ファイルを読み込み、設定値を返す
 /// 無い場合はデフォルト値を返す
-fn get_setting(_app: &tauri::AppHandle) -> Settings {
-    // TODO: 将来的にはここでJSONファイルを読み込む
-    Settings {
+fn get_setting(app: &tauri::AppHandle) -> Setting {
+    let config_dir_path = app.path_resolver().app_config_dir();
+    if let Some(config_dir_path) = config_dir_path {
+        let config_file_path = config_dir_path.join("settings.json");
+        if config_file_path.exists() {
+            let file = read_string(config_file_path);
+            if let Ok(file_str) = file {
+                let setting = serde_json::from_str::<Value>(&file_str);
+                if let Ok(setting) = setting {
+                    return Setting {
+                        interval: u16::try_from(setting["interval"].as_u64().unwrap_or(10))
+                            .unwrap_or(10),
+                        date_line: setting["date_line"].as_str().unwrap_or("12:00").to_string(),
+                    };
+                }
+            }
+        }
+    }
+
+    Setting {
         interval: 10,
         date_line: "12:00".to_string(),
     }
 }
 
+/// フロント用に現在の設定を返す
+#[tauri::command]
+fn get_setting_for_screen(setting_state: State<SettingState>) -> Result<Setting, ()> {
+    let state = setting_state.0.lock();
+    match state {
+        Ok(state) => Ok(Setting {
+            interval: state.interval,
+            date_line: state.date_line.to_owned(),
+        }),
+        Err(_) => Err(()),
+    }
+}
+
+/// フロントから現在の設定を保存する
+#[tauri::command(rename_all = "snake_case")]
+fn save_setting_for_screen(
+    interval: u16,
+    date_line: String,
+    setting_state: State<SettingState>,
+    app_handle: tauri::AppHandle,
+) -> Result<(), ()> {
+    let state = setting_state.0.lock();
+    match state {
+        Ok(mut state) => {
+            state.interval = interval;
+            state.date_line = date_line;
+
+            // 保存処理
+            // 保存先は {Windowsのユーザーフォルダ}\AppData\Roaming\jp.nano2.vrc-pictures-organizer
+            let config_dir_path = app_handle.path_resolver().app_config_dir();
+            if let Some(config_dir_path) = config_dir_path {
+                let config_file_path = config_dir_path.join("settings.json");
+                let json = json!({
+                  "interval": state.interval,
+                  "date_line": state.date_line
+                });
+                let json_str = serde_json::to_string(&json);
+                if let Ok(json_str) = json_str {
+                    let _ = write_all(config_file_path, &json_str);
+                }
+            }
+
+            Ok(())
+        }
+        Err(_) => Err(()),
+    }
+}
+
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::{fs, thread};
 use tauri::State;
@@ -81,7 +152,10 @@ fn start_watching(app_handle: tauri::AppHandle) {
                 // 新しい親ディレクトリを生成
                 let new_parent_directory = target_file.path.parent();
                 if let Some(new_parent_directory) = new_parent_directory {
-                    let new_directory = judge_new_folder_from_modified(target_file, setting_state);
+                    let new_directory = judge_new_folder_from_modified(
+                        target_file,
+                        &setting_state.lock().unwrap().date_line,
+                    );
                     if let Ok(new_directory) = new_directory {
                         let new_parent_directory = &new_parent_directory.join(new_directory);
                         if !new_parent_directory.exists() {
@@ -110,9 +184,12 @@ fn start_watching(app_handle: tauri::AppHandle) {
             }
             println!("file moved: {}", move_count);
 
-            thread::sleep(Duration::from_secs(
-                setting_state.interval.to_owned().into(),
-            ));
+            let interval = setting_state.lock();
+            let interval = match interval {
+                Ok(interval) => interval.interval,
+                Err(_) => 0,
+            };
+            thread::sleep(Duration::from_secs(interval.into()));
         }
     });
 }
@@ -162,10 +239,7 @@ fn extract_files(items: Vec<DiskEntry>) -> Vec<DiskEntry> {
 }
 
 /// 新しく格納するフォルダの名前をファイルの更新日時（生成日時）を基準に決定して返す
-fn judge_new_folder_from_modified(
-    entry: &DiskEntry,
-    setting_state: &Settings,
-) -> Result<String, ()> {
+fn judge_new_folder_from_modified(entry: &DiskEntry, date_line: &String) -> Result<String, ()> {
     let metadata = entry.path.metadata();
     match metadata {
         Ok(metadata) => {
@@ -191,7 +265,7 @@ fn judge_new_folder_from_modified(
 
             // 比較用の基準時刻情報を生成
             // 設定情報の日付変更線時刻は HH:MM 形式なので、":" で区切る
-            let date_line_vec: Vec<&str> = setting_state.date_line.split(':').collect();
+            let date_line_vec: Vec<&str> = date_line.split(':').collect();
             let hour = date_line_vec[0].parse::<u32>().unwrap_or(12);
             let minute = date_line_vec[1].parse::<u32>().unwrap_or(0);
             let date_line_time = match NaiveTime::from_hms_opt(hour, minute, 0) {
@@ -245,21 +319,28 @@ fn main() {
                 // ウィンドウを見えなくする
                 event.window().hide().unwrap();
                 api.prevent_close();
+                // 監視を再開
+                start_watching(event.window().app_handle());
             }
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![start_watching, stop_watching])
+        .invoke_handler(tauri::generate_handler![
+            start_watching,
+            stop_watching,
+            get_setting_for_screen,
+            save_setting_for_screen
+        ])
         .setup(|app| {
             // 設定ファイル参照
             let settings = get_setting(&app.app_handle());
-            app.manage(SettingState(settings));
+            app.manage(SettingState(Mutex::new(settings)));
 
             // 監視状態初期化
             let is_stop_watching = Arc::new(AtomicBool::new(false));
             app.manage(WatchingState(is_stop_watching));
 
             // 監視開始
-            // start_watching(app.app_handle());
+            start_watching(app.app_handle());
             Ok(())
         })
         .run(tauri::generate_context!())

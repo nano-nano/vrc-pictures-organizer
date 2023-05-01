@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use chrono::{Local, NaiveTime, TimeZone};
+use chrono::{DateTime, Local, NaiveTime, TimeZone};
 use fs_extra::file::write_all;
 use serde_json::{json, Value};
 use tauri::api::dir::{self, DiskEntry};
@@ -115,6 +115,31 @@ fn save_setting_for_screen(
     }
 }
 
+/// 処理ログstate
+struct LogState(Mutex<Vec<String>>);
+
+/// ログを追加する
+/// 新しいログはベクタの先頭に挿入される
+fn add_log(app_handle: &tauri::AppHandle, message: &str) {
+    let binding = app_handle.state::<LogState>();
+    let log_state = binding.0.lock();
+    if let Ok(mut log_state) = log_state {
+        let date_time: DateTime<Local> = Local::now();
+        let date_time_str = date_time.format("%F %H:%M:%S").to_string();
+        log_state.insert(0, format!("[{}] {}", date_time_str, message));
+    }
+}
+
+/// フロント用に現在のログを返す
+#[tauri::command]
+fn get_log_for_screen(log_state: State<LogState>) -> Result<Vec<String>, ()> {
+    let state = log_state.0.lock();
+    match state {
+        Ok(state) => Ok(state.to_vec()),
+        Err(_) => Err(()),
+    }
+}
+
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -183,6 +208,7 @@ fn start_watching(app_handle: tauri::AppHandle) {
                 }
             }
             println!("file moved: {}", move_count);
+            add_log(&app_handle, &format!("ファイル処理完了: {}件", move_count));
 
             let interval = setting_state.lock();
             let interval = match interval {
@@ -328,7 +354,8 @@ fn main() {
             start_watching,
             stop_watching,
             get_setting_for_screen,
-            save_setting_for_screen
+            save_setting_for_screen,
+            get_log_for_screen
         ])
         .setup(|app| {
             // 設定ファイル参照
@@ -338,6 +365,10 @@ fn main() {
             // 監視状態初期化
             let is_stop_watching = Arc::new(AtomicBool::new(false));
             app.manage(WatchingState(is_stop_watching));
+
+            // ログ初期化
+            app.manage(LogState(Mutex::new(Vec::new())));
+            add_log(&app.app_handle(), "アプリ起動");
 
             // 監視開始
             start_watching(app.app_handle());

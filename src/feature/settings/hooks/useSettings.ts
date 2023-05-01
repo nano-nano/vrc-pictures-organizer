@@ -28,11 +28,9 @@ function useSetting() {
       interval: interval,
       date_line: dateLineTime,
     };
-    invoke('save_setting_for_screen', currentSetting)
-      .then(() => console.debug('finish'))
-      .finally(() => {
-        setIsSaving(false);
-      });
+    invoke('save_setting_for_screen', currentSetting).finally(() => {
+      setIsSaving(false);
+    });
   }, [dateLineTime, interval]);
 
   useEffect(() => {

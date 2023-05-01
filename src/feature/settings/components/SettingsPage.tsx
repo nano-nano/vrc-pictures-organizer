@@ -8,7 +8,9 @@ import {
   NumberInput,
 } from '@mantine/core';
 import SaveIcon from '@mui/icons-material/Save';
+import { useEffect } from 'react';
 
+import useLog from '../hooks/useLog';
 import useSetting from '../hooks/useSettings';
 
 function SettingsPage() {
@@ -21,6 +23,11 @@ function SettingsPage() {
     onClickSave,
     isSaving,
   } = useSetting();
+  const { fetchLog, formattedLogs } = useLog();
+
+  useEffect(() => {
+    fetchLog();
+  }, [fetchLog]);
 
   return (
     <Stack sx={{ padding: '8px' }}>
@@ -57,7 +64,13 @@ function SettingsPage() {
       >
         保存
       </Button>
-      <Textarea size="xs" label="ログ" minRows={6} readOnly />
+      <Textarea
+        size="xs"
+        label="ログ"
+        minRows={6}
+        readOnly
+        value={formattedLogs}
+      />
     </Stack>
   );
 }

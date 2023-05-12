@@ -14,6 +14,7 @@ use tauri::{CustomMenuItem, SystemTrayEvent, SystemTrayMenu};
 fn create_system_tray_menu() -> SystemTray {
     let menu = SystemTrayMenu::new()
         .add_item(CustomMenuItem::new("settings".to_string(), "設定"))
+        .add_item(CustomMenuItem::new("github".to_string(), "GitHub"))
         .add_item(CustomMenuItem::new("quit".to_string(), "終了"));
     SystemTray::new().with_menu(menu)
 }
@@ -52,8 +53,8 @@ fn get_setting(app: &tauri::AppHandle) -> Setting {
                 let setting = serde_json::from_str::<Value>(&file_str);
                 if let Ok(setting) = setting {
                     return Setting {
-                        interval: u16::try_from(setting["interval"].as_u64().unwrap_or(10))
-                            .unwrap_or(10),
+                        interval: u16::try_from(setting["interval"].as_u64().unwrap_or(30))
+                            .unwrap_or(30),
                         date_line: setting["date_line"].as_str().unwrap_or("12:00").to_string(),
                     };
                 }
@@ -213,7 +214,7 @@ fn start_watching(app_handle: tauri::AppHandle) {
             let interval = setting_state.lock();
             let interval = match interval {
                 Ok(interval) => interval.interval,
-                Err(_) => 0,
+                Err(_) => 30,
             };
             thread::sleep(Duration::from_secs(interval.into()));
         }
@@ -330,6 +331,13 @@ fn main() {
                     // アプリを終了
                     let _ = app.tray_handle().destroy();
                     std::process::exit(0);
+                }
+                "github" => {
+                    let _ = tauri::api::shell::open(
+                        &app.shell_scope(),
+                        "https://github.com/nano-nano/vrc-pictures-organizer",
+                        None,
+                    );
                 }
                 "settings" => {
                     // 設定画面を開く

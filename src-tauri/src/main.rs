@@ -99,6 +99,10 @@ fn save_setting_for_screen(
             // 保存先は {Windowsのユーザーフォルダ}\AppData\Roaming\jp.nano2.vrc-pictures-organizer
             let config_dir_path = app_handle.path_resolver().app_config_dir();
             if let Some(config_dir_path) = config_dir_path {
+                if !config_dir_path.exists() {
+                    // 保存先がない場合、
+                    let _ = create_dir(&config_dir_path);
+                }
                 let config_file_path = config_dir_path.join("settings.json");
                 let json = json!({
                   "interval": state.interval,
@@ -106,7 +110,8 @@ fn save_setting_for_screen(
                 });
                 let json_str = serde_json::to_string(&json);
                 if let Ok(json_str) = json_str {
-                    let _ = write_all(config_file_path, &json_str);
+                    let _: Result<(), fs_extra::error::Error> =
+                        write_all(config_file_path, &json_str);
                 }
             }
 
@@ -141,6 +146,7 @@ fn get_log_for_screen(log_state: State<LogState>) -> Result<Vec<String>, ()> {
     }
 }
 
+use std::fs::create_dir;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;

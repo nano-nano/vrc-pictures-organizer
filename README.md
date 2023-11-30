@@ -2,7 +2,7 @@
 
 VRChat のスクリーンショットを撮影年月日別のフォルダに仕分けするアプリ
 
-![image](https://user-images.githubusercontent.com/29051777/145747865-8be61d1d-17fc-42c8-bc66-6d3b7bc4517c.png)
+![image](https://github.com/nano-nano/vrc-pictures-organizer/assets/29051777/efbc747f-737a-4d95-ac04-08ec848bc04b)
 
 ## これはなに？
 
@@ -51,8 +51,8 @@ Nano-Nano
 
 ### 開発ツールのバージョン
 
-- Node.js: v18.15.0
-- npm: v9.5.0
+- Node.js: v18.16.1
+- npm: v9.5.1
 
 - Tauri: v1.2.4
 

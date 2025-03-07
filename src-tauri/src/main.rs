@@ -277,8 +277,8 @@ fn judge_new_folder_from_modified(entry: &DiskEntry, date_line: &String) -> Resu
     match metadata {
         Ok(metadata) => {
             // ファイルの更新日時（生成日時）をUnixTimeで取得
-            let modified_unixtime = metadata.modified();
-            let modified_unixtime = match modified_unixtime {
+            // let modified_unixtime = metadata.modified();
+            let modified_unixtime = match metadata.modified() {
                 Ok(modified_unixtime) => {
                     match modified_unixtime.duration_since(std::time::UNIX_EPOCH) {
                         Ok(modified_unixtime) => modified_unixtime,

@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint';
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   { files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
-  { ignores: ['src-tauri/*', '**/*.config.*'] },
+  { ignores: ['src-tauri/*', '**/*.config.*', 'src/bindings.ts'] },
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,

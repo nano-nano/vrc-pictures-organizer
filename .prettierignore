@@ -8,3 +8,5 @@ node_module
 **/*.html
 package-lock.json
 **/*.md
+
+src/bindings.ts

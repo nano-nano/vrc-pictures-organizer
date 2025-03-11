@@ -11,7 +11,7 @@ import '@mantine/notifications/styles.css';
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <MantineProvider>
-      <Notifications containerWidth="200px" />
+      <Notifications containerWidth="250px" />
       <AppSettingsPage />
     </MantineProvider>
   </React.StrictMode>

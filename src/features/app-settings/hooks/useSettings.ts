@@ -39,22 +39,23 @@ export default function useSettings() {
         date_line: settings.dateLine,
         notification_mode: settings.notificationMode,
       })
-      .then(() => {
-        notifications.show({
-          title: '保存成功',
-          message: '設定を保存しました',
-          withBorder: true,
-          withCloseButton: false,
-        });
-      })
-      .catch(() => {
-        notifications.show({
-          title: '保存失敗',
-          message: '設定を保存できませんでした',
-          color: 'red',
-          withBorder: true,
-          withCloseButton: false,
-        });
+      .then((res) => {
+        if (res.status === 'ok') {
+          notifications.show({
+            title: '保存成功',
+            message: '設定を保存しました',
+            withBorder: true,
+            withCloseButton: false,
+          });
+        } else {
+          notifications.show({
+            title: '保存失敗',
+            message: '設定を保存できませんでした',
+            color: 'red',
+            withBorder: true,
+            withCloseButton: false,
+          });
+        }
       });
   }
 

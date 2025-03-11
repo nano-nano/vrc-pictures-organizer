@@ -1,11 +1,26 @@
 import { Button, Flex, NumberInput, Select, Stack, Text, Textarea } from '@mantine/core';
 
 import { IconDeviceFloppy } from '@tabler/icons-react';
+import { useEffect } from 'react';
+import { NotificationMode } from '../constants/notificationMode';
+import useAppLog from '../hooks/useAppLog';
 import useSettings from '../hooks/useSettings';
 import TimeInputWithPicker from './TimeInputWithPicker';
 
 export default function AppSettingsPage() {
-  const { saveSettings } = useSettings();
+  const {
+    settings,
+    isValidValue,
+    onChangeInterval,
+    onChangeDateLine,
+    onChangeNotificationMode,
+    saveSettings,
+  } = useSettings();
+  const { formattedLogs, fetchAppLog } = useAppLog();
+
+  useEffect(() => {
+    fetchAppLog();
+  }, [fetchAppLog]);
 
   return (
     <main>
@@ -18,9 +33,9 @@ export default function AppSettingsPage() {
               rightSection={<Text fz="sm">秒</Text>}
               max={3600}
               min={10}
-              value={60}
-              onChange={() => {
-                /** TODO */
+              value={settings.interval}
+              onChange={(val) => {
+                onChangeInterval(Number(val));
               }}
               disabled={false}
               style={{ width: '100%' }}
@@ -29,9 +44,9 @@ export default function AppSettingsPage() {
               size="xs"
               width="100%"
               label="日付の境（24時間制）"
-              value={'12:00'}
-              onChange={() => {
-                /** TODO */
+              value={settings.dateLine}
+              onChange={(event) => {
+                onChangeDateLine(event.target.value);
               }}
               disabled={false}
               style={{ width: '100%' }}
@@ -40,26 +55,28 @@ export default function AppSettingsPage() {
           <Select
             size="xs"
             label="処理結果通知"
-            data={[
-              { value: 'always', label: '常に通知する' },
-              { value: 'onSuccess', label: '成功時のみ通知する' },
-              { value: 'none', label: '通知しない' },
-            ]}
-            value={'onSuccess'}
+            data={NotificationMode}
+            value={settings.notificationMode}
+            onChange={(newVal) => {
+              onChangeNotificationMode(newVal);
+            }}
           />
           <Button
             size="xs"
             leftSection={<IconDeviceFloppy size={20} />}
-            onClick={() => {
-              /** TODO */
-              saveSettings();
-            }}
-            disabled={false}
+            onClick={saveSettings}
+            disabled={!isValidValue}
           >
             保存
           </Button>
         </Stack>
-        <Textarea size="xs" maxRows={4} label="ログ" styles={{ input: { height: '95px' } }} />
+        <Textarea
+          size="xs"
+          maxRows={4}
+          label="ログ"
+          styles={{ input: { height: '95px' } }}
+          value={formattedLogs}
+        />
       </Stack>
     </main>
   );

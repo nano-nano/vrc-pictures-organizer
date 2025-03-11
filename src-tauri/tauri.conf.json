@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "vrc-pictures-organizer",
+  "productName": "VRC Pictures Organizer",
   "version": "3.0.0",
   "identifier": "jp.nano2.vrc-pictures-organizer",
   "build": {
@@ -16,7 +16,8 @@
         "resizable": false,
         "title": "VRC Pictures Organizer",
         "width": 400,
-        "height": 300
+        "height": 300,
+        "visible": false
       }
     ],
     "security": {

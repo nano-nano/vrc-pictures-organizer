@@ -5,8 +5,24 @@
 
 
 export const commands = {
-async greet(name: string) : Promise<string> {
-    return await TAURI_INVOKE("greet", { name });
+async loadSettingsFromFile() : Promise<SettingsStruct> {
+    return await TAURI_INVOKE("load_settings_from_file");
+},
+async saveSettingsToFile(settings: SettingsStruct) : Promise<Result<null, null>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("save_settings_to_file", { settings }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async fetchAppProcessLog() : Promise<Result<string[], null>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("fetch_app_process_log") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -20,7 +36,19 @@ async greet(name: string) : Promise<string> {
 
 /** user-defined types **/
 
-
+export type SettingsStruct = { 
+/**
+ * フォルダ監視間隔（秒）
+ */
+interval_sec: number; 
+/**
+ * 日付が変わったと判断する時刻（HH:MM）
+ */
+date_line: string; 
+/**
+ * 通知モード
+ */
+notification_mode: string }
 
 /** tauri-specta globals **/
 

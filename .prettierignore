@@ -1,4 +1,12 @@
-node_modules/
-coverage/
-dist/
+# Ignore artifacts:
+build
+coverage
+dist
+node_module
+.vscode
+
+**/*.html
 package-lock.json
+**/*.md
+
+src/bindings.ts

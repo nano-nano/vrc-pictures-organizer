@@ -1,70 +1,33 @@
-# VRChat Picture Organizer
+<div align="center">
+    <h1>VRC Pictures Organizer</h1>
+    <p>
+        <b>An app that organizes folders of images taken with VRChat by date</b><br/>
+        <b>VRChatで撮影した写真を日付ごとのフォルダに整理するアプリ</b>
+    </p>
+</div>
 
-VRChat のスクリーンショットを撮影年月日別のフォルダに仕分けするアプリ
+<br>
 
-![image](https://github.com/nano-nano/vrc-pictures-organizer/assets/29051777/efbc747f-737a-4d95-ac04-08ec848bc04b)
+> [!NOTE]  
+> This app provides for Japanese only.  
+> 本アプリは日本語でのみ提供されます
 
-## これはなに？
+VRChatで撮影した写真の保存フォルダを定期的に監視し、撮影日時に基づいて自動的に整理します。
 
-VRChat Picture Organizer は、
-VRChat で撮影した VR カメラやスクリーンショットの画像を、
-ファイル名の撮影年月日別のフォルダに仕分けするアプリです。
+[Narazakaさんのvrc_shot_folder](https://github.com/Narazaka/vrc_shot_folder) にインスパイアを受けて開発しました。
 
-### ファイルの仕分けについて
+## 機能
 
-ファイルの作成日時（更新日時）と日付変更基準時（設定により変更可能。デフォルトは 12:00）を比較し、
-基準時よりも前のファイルは前日とみなします。
+- 起動するとタスクトレイに常駐し、設定した間隔でVRChatの画像フォルダを監視します
+  - 監視間隔は秒単位で設定できます
+- 整理されていない画像が見つかると、メタデータの更新日時を読み取り日付ごとのフォルダに振り分けます
+  - 日付の境とする時刻を設定できます
+  - 振り分け完了時に処理件数をWindowsの通知で表示できます
 
-次の例のように仕分けされます。（基準時＋ 12:00 設定）
+## インストール方法
 
-| ファイル作成日時 | 分類されるフォルダ |
-| ---------------- | ------------------ |
-| 2023/04/30 23:59 | 2023/04/30         |
-| 2023/05/01 00:01 | 2023/04/30         |
-| 2023/05/01 11:59 | 2023/04/30         |
-| 2023/05/01 12:00 | 2023/05/01         |
+[Releaseページ](https://github.com/nano-nano/vrc-pictures-organizer/releases) からインストーラーをDLし、インストーラーの指示に従ってインストールしてください
 
-## 対応 OS
+## その他の使い方
 
-Windows のみ対応しています。
-
-## ダウンロードリンク
-
-[こちら](https://github.com/nano-nano/vrc_pictures_organizer/releases)からどうぞ
-
-## 使い方
-
-...ToDo...
-
-## ライセンス
-
-プログラム本体については [MIT License](https://github.com/tcnksm/tool/blob/master/LICENCE) です。
-
-## 作者
-
-Nano-Nano
-[@nano2_aloerina](https://twitter.com/nano2_aloerina)
-
----
-
-## 開発者向け情報
-
-### 開発ツールのバージョン
-
-- Node.js: v18.16.1
-- npm: v9.5.1
-
-- Tauri: v1.2.4
-
-### 各種コマンド
-
-```bash
-# 依存関係のインストール
-$ npm install
-
-# 開発用モードで起動
-$ npm run tauri dev
-
-# リリース用ビルド
-$ npm run tauri build
-```
+準備中...

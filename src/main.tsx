@@ -1,13 +1,18 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import "./styles.css";
-import SettingsPage from "./feature/settings/components/SettingsPage";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import AppSettingsPage from './features/app-settings/components/AppSettingsPage';
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+import { MantineProvider } from '@mantine/core';
+import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
+import { Notifications } from '@mantine/notifications';
+import '@mantine/notifications/styles.css';
+
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <SettingsPage />
+    <MantineProvider>
+      <Notifications containerWidth="250px" />
+      <AppSettingsPage />
+    </MantineProvider>
   </React.StrictMode>
 );
-
-// 右クリックで表示されるデフォルトコンテキストメニューの無効化
-document.addEventListener('contextmenu', event => event.preventDefault());

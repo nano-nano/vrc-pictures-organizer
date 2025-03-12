@@ -9,7 +9,7 @@
 <br>
 
 > [!NOTE]  
-> This app provides for Japanese only.
+> This app provides for Japanese only.  
 > 本アプリは日本語でのみ提供されます
 
 VRChatで撮影した写真の保存フォルダを定期的に監視し、撮影日時に基づいて自動的に整理します。
@@ -26,7 +26,7 @@ VRChatで撮影した写真の保存フォルダを定期的に監視し、撮�
 
 ## インストール方法
 
-ReleaseページからインストーラーをDLし、インストーラーの指示に従ってインストールしてください
+[Releaseページ](https://github.com/nano-nano/vrc-pictures-organizer/releases) からインストーラーをDLし、インストーラーの指示に従ってインストールしてください
 
 ## その他の使い方
 

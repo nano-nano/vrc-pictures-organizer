@@ -1,6 +1,6 @@
 [package]
 name = "vrc-pictures-organizer"
-version = "3.0.0"
+version = "3.0.1"
 description = "An app that organizes folders of images taken with VRChat by date."
 authors = ["Nano-nano"]
 edition = "2021"

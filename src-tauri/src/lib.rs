@@ -177,6 +177,10 @@ pub fn run() {
                             break;
                         } else {
                             show_files_count_notification(&app_handle, &file_count);
+                            add_process_log(
+                                &app_handle,
+                                &format!("ファイル処理完了: {}件", &file_count),
+                            );
                         }
                     }
                 });

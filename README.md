@@ -30,4 +30,4 @@ VRChatで撮影した写真の保存フォルダを定期的に監視し、撮�
 
 ## その他の使い方
 
-準備中...
+[Wiki](https://github.com/nano-nano/vrc-pictures-organizer/wiki) をご覧ください

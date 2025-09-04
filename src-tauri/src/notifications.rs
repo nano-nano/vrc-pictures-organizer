@@ -3,7 +3,7 @@ use tauri_plugin_notification::NotificationExt;
 
 use crate::settings::load_settings_from_file;
 
-pub fn show_files_count_notification(app_handle: &AppHandle, files_count: &i8) {
+pub fn show_files_count_notification(app_handle: &AppHandle, files_count: &i32) {
     let settings = load_settings_from_file(app_handle);
 
     if settings.get_notification_mode() == "none" {

@@ -17,9 +17,9 @@ pub enum OrganizationCommand {
 
 pub fn start_organize_thread(
     app_handle: &AppHandle,
-) -> anyhow::Result<(Sender<OrganizationCommand>, Receiver<i8>)> {
+) -> anyhow::Result<(Sender<OrganizationCommand>, Receiver<i32>)> {
     let (sender_command, receiver_command) = channel::<OrganizationCommand>();
-    let (sender_file_count, receiver_file_count) = channel::<i8>();
+    let (sender_file_count, receiver_file_count) = channel::<i32>();
     let settings = load_settings_from_file(app_handle);
     // VRChatの画像が保存されるフォルダは {Windowsのピクチャフォルダ}/VRChat
     let vrc_folder_path = app_handle.path().picture_dir()?.join("VRChat");
@@ -36,7 +36,7 @@ pub fn start_organize_thread(
 
 fn watching_thread(
     receiver: Receiver<OrganizationCommand>,
-    sender: Sender<i8>,
+    sender: Sender<i32>,
     settings: SettingsStruct,
     vrc_folder_path: &PathBuf,
 ) {

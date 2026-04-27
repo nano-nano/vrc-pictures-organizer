@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir, DirEntry},
+    fs::{create_dir_all, DirEntry},
     path::PathBuf,
     sync::mpsc::{channel, Receiver, Sender},
     thread,
@@ -65,14 +65,16 @@ fn watching_thread(
                 let target_file_name = target_file_entry.file_name();
                 let new_folder_name =
                     judge_new_folder_from_modified(&target_file_entry, &date_line);
-                if let (Some(parent), Ok(new_folder_name)) =
-                    (target_file_path.parent(), new_folder_name)
-                {
-                    // 親ディレクトリと、新しい振り分け先のフォルダが決まったら振り分け処理を実施
-                    let new_parent_directory = parent.join(new_folder_name);
+                if let Ok(new_folder_name) = new_folder_name {
+                    // 算出した日付（YYYY-MM-DD）から年月部分（YYYY-MM）を取り出してパスを組み立てる
+                    // ファイルの現在地の年月フォルダではなく、振り分け先の日付から導出することで
+                    // 月をまたぐ場合も正しい年月フォルダ配下に配置される
+                    let month_folder_name = &new_folder_name[..7];
+                    let new_parent_directory =
+                        vrc_folder_path.join(month_folder_name).join(&new_folder_name);
                     if !new_parent_directory.exists() {
-                        // 振り分け先フォルダがない場合は作成する
-                        let _ = create_dir(&new_parent_directory);
+                        // 振り分け先フォルダがない場合は作成する（年月フォルダも含めて一括作成）
+                        let _ = create_dir_all(&new_parent_directory);
                     }
 
                     // ファイルを移動

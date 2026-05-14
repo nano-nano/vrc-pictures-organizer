@@ -2,7 +2,7 @@ mod notifications;
 mod organization;
 mod settings;
 
-use std::{sync::mpsc::Sender, thread};
+use std::{sync::mpsc::Sender, thread, time::Duration};
 
 use chrono::{DateTime, Local};
 use notifications::show_files_count_notification;
@@ -13,8 +13,11 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     App, AppHandle, Manager, WindowEvent,
 };
+use tauri_plugin_cli::CliExt;
 use tauri_specta::*;
 use tokio::sync::Mutex;
+
+use crate::notifications::show_files_count_notification_wo_settings;
 
 #[tauri::command]
 #[specta::specta]
@@ -151,6 +154,7 @@ pub fn run() {
         .expect("Failed to export typescript bindings");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_cli::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         .invoke_handler(invoke_builder.invoke_handler())
@@ -162,28 +166,74 @@ pub fn run() {
                 log: Mutex::new(vec![]),
             });
             add_process_log(app.app_handle(), "アプリ起動");
-            // 画像整理スレッドを起動
-            let outcome = organization::start_organize_thread(app.app_handle());
-            if let Ok(outcome) = outcome {
-                app.manage(OrganizationState {
-                    thread_sender: Mutex::new(Some(outcome.0)),
-                });
-                // 処理件数受け取り用channel
-                let app_handle = app.app_handle().clone();
-                thread::spawn(move || {
-                    while let Ok(file_count) = outcome.1.recv() {
-                        if file_count == -1 {
-                            // -1はTerminate時に送信される
-                            break;
+
+            // コマンドライン引数解析
+            let is_oneshot = match app.cli().matches() {
+                Ok(matches) => match matches.args.get("oneshot") {
+                    Some(arg) => {
+                        if let Some(val) = arg.value.as_bool() {
+                            val
                         } else {
-                            show_files_count_notification(&app_handle, &file_count);
-                            add_process_log(
-                                &app_handle,
-                                &format!("ファイル処理完了: {}件", &file_count),
-                            );
+                            false
                         }
                     }
-                });
+                    None => false,
+                },
+                Err(_e) => false,
+            };
+            println!("is_oneshot: {:?}", is_oneshot);
+
+            // 画像整理スレッドを起動
+            if is_oneshot {
+                // ワンショット起動（一度だけ処理してアプリ終了）
+                let app = app.app_handle();
+                let outcome = organization::start_organize_thread(app);
+                if let Ok(outcome) = outcome {
+                    app.manage(OrganizationState {
+                        thread_sender: Mutex::new(Some(outcome.0)),
+                    });
+                    // 処理件数受け取り用channel
+                    let app_handle = app.clone();
+                    thread::spawn(move || {
+                        while let Ok(file_count) = outcome.1.recv() {
+                            if file_count == -1 {
+                                // -1はTerminate時に送信される
+                                break;
+                            } else {
+                                // ワンショット時は設定に関わらず通知を出す
+                                show_files_count_notification_wo_settings(&app_handle, &file_count);
+                            }
+                            // 通知を出す前にアプリが終了しないよう、スレッドを短時間一時停止する
+                            thread::sleep(Duration::from_millis(500));
+                            stop_watching_process(&app_handle);
+                            app_handle.exit(0);
+                        }
+                    });
+                }
+            } else {
+                // 通常起動（バックグラウンドで動作）
+                let outcome = organization::start_organize_thread(app.app_handle());
+                if let Ok(outcome) = outcome {
+                    app.manage(OrganizationState {
+                        thread_sender: Mutex::new(Some(outcome.0)),
+                    });
+                    // 処理件数受け取り用channel
+                    let app_handle = app.app_handle().clone();
+                    thread::spawn(move || {
+                        while let Ok(file_count) = outcome.1.recv() {
+                            if file_count == -1 {
+                                // -1はTerminate時に送信される
+                                break;
+                            } else {
+                                show_files_count_notification(&app_handle, &file_count);
+                                add_process_log(
+                                    &app_handle,
+                                    &format!("ファイル処理完了: {}件", &file_count),
+                                );
+                            }
+                        }
+                    });
+                }
             }
             Ok(())
         })

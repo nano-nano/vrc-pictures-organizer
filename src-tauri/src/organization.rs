@@ -70,8 +70,9 @@ fn watching_thread(
                     // ファイルの現在地の年月フォルダではなく、振り分け先の日付から導出することで
                     // 月をまたぐ場合も正しい年月フォルダ配下に配置される
                     let month_folder_name = &new_folder_name[..7];
-                    let new_parent_directory =
-                        vrc_folder_path.join(month_folder_name).join(&new_folder_name);
+                    let new_parent_directory = vrc_folder_path
+                        .join(month_folder_name)
+                        .join(&new_folder_name);
                     if !new_parent_directory.exists() {
                         // 振り分け先フォルダがない場合は作成する（年月フォルダも含めて一括作成）
                         let _ = create_dir_all(&new_parent_directory);
